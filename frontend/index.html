@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuristic Todo List</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+    <style>
+        :root {
+            --base: #1e1e2e;
+            --surface0: #313244;
+            --surface1: #45475a;
+            --text: #cdd6f4;
+            --subtext0: #a6adc8;
+            --blue: #89b4fa;
+            --lavender: #b4befe;
+            --mauve: #cba6f7;
+            --pink: #f5c2e7;
+            --red: #f38ba8;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--base);
+            margin: 0;
+            padding: 20px;
+            color: var(--text);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--lavender);
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px rgba(180, 190, 254, 0.3);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--surface0);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 190, 254, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+            margin-top: 20px;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            color: var(--mauve);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: transparent;
+            border-bottom: 2px solid var(--surface1);
+        }
+
+        td {
+            padding: 16px;
+            background-color: var(--surface1);
+            color: var(--text);
+            border: none;
+        }
+
+        tr td:first-child {
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+        }
+
+        tr td:last-child {
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        button {
+            background-color: var(--mauve);
+            color: var(--base);
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        button:hover {
+            background-color: var(--pink);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(203, 166, 247, 0.2);
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        td button {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        td button:first-child {
+            background-color: var(--blue);
+        }
+
+        td button:last-child {
+            background-color: var(--red);
+        }
+
+        /* Sweetalert2 custom styling */
+        .swal2-popup {
+            background-color: var(--surface0) !important;
+            border: 1px solid var(--lavender) !important;
+            border-radius: 16px !important;
+        }
+
+        .swal2-title {
+            color: var(--text) !important;
+        }
+
+        .swal2-input {
+            background-color: var(--surface1) !important;
+            color: var(--text) !important;
+            border: 1px solid var(--lavender) !important;
+            border-radius: 8px !important;
+        }
+
+        .swal2-confirm {
+            background-color: var(--mauve) !important;
+        }
+
+        .swal2-cancel {
+            background-color: var(--surface1) !important;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const fetchTodos = async () => {
+            const response = await fetch("http://localhost:3000/");
+            const { data } = await response.json();
+            const tbody = document.getElementById("todoTableBody");
+            tbody.innerHTML = data.map(todo => `
+                <tr>
+                    <td>${todo.id}</td>
+                    <td>${todo.list}</td>
+                    <td>
+                        <button onclick="editTodo(${todo.id})">Edit</button>
+                        <button onclick="deleteTodo(${todo.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        };
+
+        const addTodo = async () => {
+            const { value: list } = await Swal.fire({
+                title: 'Tambah Todo',
+                input: 'text',
+                inputPlaceholder: 'Masukkan todo',
+                showCancelButton: true,
+                background: '#313244',
+                color: '#cdd6f4',
+                confirmButtonColor: '#cba6f7',
+                cancelButtonColor: '#45475a'
+            });
+            if (list) {
+                await fetch("http://localhost:3000/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ list })
+                });
+                fetchTodos();
+            }
+        };
+
+        const deleteTodo = async (id) => {
+            const result = await Swal.fire({
+                title: 'Yakin ingin menghapus?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal',
+                background: '#313244',
+                color: '#cdd6f4',
+                confirmButtonColor: '#f38ba8',
+                cancelButtonColor: '#45475a'
+            });
+            if (result.isConfirmed) {
+                await fetch(`http://localhost:3000/${id}`, { method: "DELETE" });
+                fetchTodos();
+            }
+        };
+
+        const editTodo = async (id) => {
+            const response = await fetch(`http://localhost:3000/${id}`);
+            const { data } = await response.json();
+            const { value: list } = await Swal.fire({
+                title: 'Edit Todo',
+                input: 'text',
+                inputValue: data.list,
+                showCancelButton: true,
+                background: '#313244',
+                color: '#cdd6f4',
+                confirmButtonColor: '#cba6f7',
+                cancelButtonColor: '#45475a'
+            });
+            if (list) {
+                await fetch(`http://localhost:3000/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ list })
+                });
+                fetchTodos();
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", fetchTodos);
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Todo List</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>List</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="todoTableBody"></tbody>
+        </table>
+        <div class="actions">
+            <button onclick="addTodo()">Tambah Todo</button>
+        </div>
+    </div>
+</body>
+
+</html>
