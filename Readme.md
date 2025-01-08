@@ -28,5 +28,3 @@ CREATE TABLE todolist (
 - **Columns:**
   - `id`: Auto-incremented integer, primary key.
   - `list`: A text field to store the to-do list item, with a maximum length of 255 characters.
-
-This version uses structured headings, clear instructions, and concise language to improve professionalism.
